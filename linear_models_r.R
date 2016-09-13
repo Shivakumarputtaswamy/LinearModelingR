@@ -3,7 +3,7 @@
 # UVA StatLab
 # Fall 2016
 
-# Ctrl + Enter to submit commands
+# Ctrl + Enter (Win) or Command + Enter (Mac) to submit commands
 
 
 # packages used in this workshop
@@ -54,11 +54,12 @@ sm1$coefficients
 # Extractor functions:
 # model coefficients (ie, the betas)
 coef(cars.lm)
+coef(cars.lm)["speed"]
 
 # fitted value (ie, what the model predicts)
 fitted(cars.lm)
 
-# see anything funny with the first two?
+# Notice the first two observations.
 
 # residuals (ie, difference between observed and predicted values)
 resid(cars.lm)
@@ -67,6 +68,14 @@ resid(cars.lm)
 plot(dist ~ speed, data=cars)
 abline(cars.lm)
 # note: abline() only works for simple linear regression
+
+# A Note about missing data: missing data means the case is dropped from the
+# analysis.
+
+# set row 10, column 2 value of cars to NA ("Not Available")
+cars[10,2] <- NA
+summary(lm(dist ~ speed, cars))
+# note the message: "1 observation deleted due to missingness"
 
 
 # multiple linear regression ----------------------------------------------
@@ -94,7 +103,7 @@ pairs(pros)
 
 # scatterplotMatrix() from the car package
 scatterplotMatrix(pros)
-# look at just first 4 columns of data
+# look at just 4 columns of data at a time
 scatterplotMatrix(pros[1:4])
 scatterplotMatrix(pros[5:8])
 
@@ -114,11 +123,11 @@ scatterplot(psa ~ volume | gleason.score, data = pros)
 scatterplot(psa ~ volume | gleason.score, data = pros, smoother = FALSE)
 
 # some observations:
-# psa and volume are skewed right
-# svi appears to be a factor with levels of 0 and 1
-# gleason score is discrete
-# weight has an outlier (data entry error?)
-# bph and cap.pen both have a lot of 0's
+# - psa and volume are skewed right
+# - svi only takes values of 0 and 1
+# - gleason score is discrete
+# - weight has an outlier (data entry error?)
+# - bph and cap.pen both have a lot of 0's
 
 # check distribution of PSA, our response
 hist(pros$psa) # skewed right
@@ -129,7 +138,7 @@ hist(log(pros$psa))
 # add log transformed psa to data frame:
 pros$logpsa <- log(pros$psa)
 
-# volume, weight, bph, cap.pen might benefit from log transformation,
+# volume, weight, bph, cap.pen might benefit from a log transformation,
 # but we won't pursue further.
 
 # fit model using all variables
@@ -169,7 +178,6 @@ summary(trees)
 # (3) View the model summary. 
 
 
-
 # back to presentation
 
 # confidence intervals ----------------------------------------------------
@@ -183,7 +191,7 @@ confint(m1,"volume")
 
 # confidence intervals for predictions using new data
 
-# first need to generate new data.
+# first need to provide new data.
 # the predict() function requires that new data be in data frame.
 # here we create a data frame with one row (ie, one person)
 pros.new <- with(pros, data.frame(volume=median(volume),
@@ -202,6 +210,7 @@ exp(predict(m1, newdata=pros.new, interval = "confidence")) # original scale
 
 # predicted value with interval
 predict(m1, newdata=pros.new, interval = "prediction")
+exp(predict(m1, newdata=pros.new, interval = "prediction"))
 
 
 # In two-dimensions (1 predictor), we can plot the confidence bands
@@ -231,9 +240,7 @@ visreg(m1, cond = list(svi=1,
 # (1) Find 95% confident intervals for the coefficients in the model you fit 
 # earlier, tree.mod:
 
-
 # (2) Use visreg to viualize the model, tree.mod:
-
 
 
 
@@ -243,6 +250,7 @@ visreg(m1, cond = list(svi=1,
 
 # recall previous model
 m1
+
 # this fits the same model:
 # drop psa and fit everything else in the data frame
 pros$psa <- NULL
@@ -273,7 +281,7 @@ summary(m4)
 # YOUR TURN!
 
 # Fit a model using the trees data with Volume modeled as a function of Height,
-# Girth and the interaction of Height and Girth.
+# Girth and the interaction of Height and Girth. Save as tree.mod2:
 
 
 # back to presentation.
@@ -306,7 +314,8 @@ is.factor(pros$gleason.score)
 # R treats ordered factors differently from regular unordered factors when it
 # comes to modeling. Instead of dummy variables it creates polynomial scores.
 
-# summary stats
+# summary stats and exploratory plot with factors
+
 # mean psa for each gleason.score group and boxplots
 aggregate(logpsa ~ gleason.score, pros, mean)
 plot(logpsa ~ gleason.score, pros)
@@ -314,14 +323,12 @@ plot(logpsa ~ gleason.score, pros)
 aggregate(logpsa ~ svi, pros, mean)
 boxplot(logpsa ~ svi, pros)
 
-# plot effects of factors
-plot.design(logpsa ~ gleason.score + svi, data = pros)
 
 # linear models with gleason.score (aka, ANOVA)
 fm1 <- lm(logpsa ~ gleason.score, pros)
 summary(fm1)
 coef(fm1)
-anova(fm1)
+anova(fm1) # The ANOVA hypothesis test
 
 # one-way ANOVA with gleason.score
 aov1 <- aov(logpsa ~ gleason.score, pros)
@@ -330,7 +337,15 @@ coef(aov1) # same as coef(lm1)
 TukeyHSD(aov1) # multiple comparisons of means
 plot(TukeyHSD(aov1))
 
+# From the TukeyHSD documentation:
+
+# "The intervals constructed in this way would only apply exactly to balanced
+# designs where there are the same number of observations made at each level of
+# the factor. This function incorporates an adjustment for sample size that
+# produces sensible intervals for mildly unbalanced designs."
+
 # linear model where gleason.score interacted with svi (factor:factor)
+
 # exploratory plots and summaries
 boxplot(logpsa ~ gleason.score * svi, data=pros)
 
@@ -374,6 +389,7 @@ scatterplot(logpsa ~ volume | gleason.score, pros, smooth=F)
 # let's log transform volume:
 scatterplot(logpsa ~ log(volume) | gleason.score, pros, smooth=F)
 
+
 # now fit the model
 # Is there a difference in slopes for each level of gleason.score?
 fm4 <- lm(logpsa ~ gleason.score*log(volume), pros)
@@ -397,9 +413,11 @@ visreg(fm4, xvar = "volume", by = "gleason.score", xtrans = log)
 
 # Use visreg to visualize the interaction in the tree.mod2 model. 
 
-# Set xvar = "Height" and by = "Girth". 
+# Set xvar = "Height" and by = "Girth".
 
-# This is a numeric:numeric interaction. How do we interpret the plot?
+# This is a numeric:numeric interaction. According to the visreg documentation 
+# when "a continuous variable is used for the by option...cross-sections are
+# taken at the 10th, 50th, and 90th quantiles."
 
 
 # back to presentation
@@ -419,10 +437,27 @@ par(op) # restore to previous setting
 pros[32,]
 # very high weight
 
+
+# We can use the which argument to specify a particular diagnostic plot.
+# 1 = Residuals vs Fitted
+# 2 = Normal Q-Q
+# 3 = Scale - Location
+# 5 = Residuals vs Leverage
+
+plot(m1, which = 1)
+plot(m1, which = 2)
+plot(m1, which = 3)
+plot(m1, which = 5)
+
+# Show just two plots
+op <- par(mfrow=c(1,2))
+plot(m1, which = c(1,2)) # just the resid vs fitted and qq-plot
+par(op)
+
 # check independence assumption
 # plot residuals against predictor variables and look for patterns;
 # there should be no pattern.
-# don't plot residuals against your response;
+
 # Example
 plot(residuals(m1) ~ volume , data=pros)
 plot(residuals(m1) ~ weight , data=pros)
@@ -460,8 +495,9 @@ plot(m2)
 summary(m1)
 summary(m2) # weight now appears marginally significant
 
+# model selection - testing-based approach
 
-# create new model without cap.pen, weight and age
+# create new model without cap.pen, weight and age (keeping obs 32)
 pros.lm2 <- update(m1, . ~ . - cap.pen - weight - age)
 summary(pros.lm2)
 
@@ -471,10 +507,14 @@ anova(pros.lm2,m1)
 
 # Result: fail to reject null; smaller model fits just as well as larger model
 
+# model selection - criterion-based approach
+
 # Using AIC to select a model
 step.out <- step(m1)
 step.out
+step.out$anova # log of selection
 summary(step.out) # final model
+
 # same as what we selected using anova()
 
 # recall diagnostics of original model

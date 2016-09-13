@@ -82,7 +82,7 @@ par(opar)
 ```
 
 
-## Before fitting a linear model: import data
+## fitting a linear model in `R`: import data
 
 Most any kind of data can be read into R. The usual form of the function is `read.x`. Examples:
 
@@ -95,7 +95,7 @@ You can also use point-and-click in R Studio: "Import Dataset" button.
 
 The `haven` package allows you to read in data from other programs, such as SPSS, Stata and SAS.
 
-## Before fitting a linear model: structure of data
+## fitting a linear model in `R`: structure of data
 
 Data should be _tidy_, that is
 
@@ -112,9 +112,9 @@ Also, there is no need to create dummy variables or interactions in advance. R c
 
 
 
-## Before fitting a linear model: examine data
+## fitting a linear model in `R`: examine data
 
-Make sure you and R both agree what your data look like. Get to know your data, too.
+Make sure you and R both agree what your data look like. 
 
 - numbers were read in as numbers
 - known missing data is coded as missing (`NA`, not 999)
@@ -127,7 +127,7 @@ Two basic functions:
 2. `str(mydata)`: Structure of data 
 
 
-## Before fitting a linear model: exploratory plots
+## fitting a linear model in `R`: exploratory plots
 
 Good idea to visually examine your data before building a model. Helps you...
 
@@ -142,7 +142,7 @@ Three basic plots:
 
 The `car` package has two nice exploratory plotting functions: `scatterplot` and `scatterplotMatrix`.
 
-## Fitting a linear model in R
+## Fitting a linear model in `R`: the `lm` function
 
 - The basic function is `lm`. The main arguments are `formula` and `data`. 
 
@@ -154,7 +154,7 @@ The `car` package has two nice exploratory plotting functions: `scatterplot` and
 - Or more concisely:  
 `lm(Y ~ X1 + X2, mydata)`
 
-## Saving and working with a linear model
+## Saving and working with a linear model in `R`
 
 - Results of a linear model can be saved, like so:  
 `lm1 <- lm(Y ~ X1 + X2, mydata)`    
@@ -167,7 +167,7 @@ The `car` package has two nice exploratory plotting functions: `scatterplot` and
 
 Let's go to the R script.
 
-## A closer look at the R model summary
+## A closer look at the `R` model summary
 
 ```
 Call:
@@ -184,7 +184,7 @@ Residuals:
 
 Quick check of the distributional (Normal) assumptions of residuals. Median should not be far from 0. Max and Min, and 1Q and 3Q, should be roughly equal in absolute value.
 
-## A closer look at the R model summary
+## A closer look at the `R` model summary
 
 ```
 Coefficients:
@@ -197,20 +197,20 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ```
 - **Estimate**: $\hat{\beta}$
-- **Std. Error**: SE of the $\hat{\beta}$ 
+- **Std. Error**: standard error of the $\hat{\beta}$ 
 - **t value**: statistic for test $H_{0}:\hat{\beta} = 0$ *in the model* (Estimate $\div$ Std. Error)
 - **Pr(>|t|)**: p-value of hypothesis test (2-sided)
 - **Signif. codes**: indicators of significance; one star means $0.01 < p < 0.05$
 
-## A closer look at the R model summary
+## A closer look at the `R` model summary
 
 ```
 Residual standard error: 0.7679 on 89 degrees of freedom
 Multiple R-squared:  0.5893,  Adjusted R-squared:  0.557 
 F-statistic: 18.24 on 7 and 89 DF,  p-value: 7.694e-15
 ```
-- **Residual standard error**: $\hat{\sigma}$; estimate of $\sqrt{\sigma^{2}}$
-- **degrees of freedom**: # of obs - # of parameters
+- **Residual standard error**: $\hat{\sigma}$
+- **degrees of freedom**: # of obs - # of parameters (the $\hat{\beta}$s)
 - **Multiple R-squared**: measure of model fit (0,1)
 - **Adjusted R-squared**: measure of model fit adjusted for number of parameters (0,1)
 - **F-statistic**: statistic for hypothesis test all coefficients (other than intercept) = 0
@@ -229,7 +229,7 @@ F-statistic: 18.24 on 7 and 89 DF,  p-value: 7.694e-15
 
 ## Confidence intervals for predictions
 
-- We can make predictions using our linear model, but there will be uncertainty. We need to calculate that uncertainty.
+- We can make predictions using our linear model, but there will be uncertainty. We'd like to quantify that uncertainty.
 
 - Two forms of confidence intervals (CI) for prediction:
 
@@ -240,7 +240,7 @@ F-statistic: 18.24 on 7 and 89 DF,  p-value: 7.694e-15
 
 - To make predictions for a fitted model, use the `predict` function. Output includes fit and lower/upper bounds.
 
-## Using the `predict` function in R
+## Using the `predict` function in `R`
 
 - The only required argument to `predict` is the fitted model object. 
 
@@ -254,7 +254,7 @@ F-statistic: 18.24 on 7 and 89 DF,  p-value: 7.694e-15
 
 Let's go to R.
 
-## Model specification in R
+## Model specification in `R`
 
 - We mentioned earlier R uses the _Wilkinson-Rogers_ notation for specifying models:
 
@@ -268,7 +268,7 @@ Let's go to R.
 
 Symbols are used differently in R models:
 
-- $+$ inclusion of variable (not addition)
+- $+$ inclusion of variable
 - $-$ deletion of variable (not subtraction)
 - $*$ inclusion of variables _and their interactions_ (not multiplication)
 - $:$ interaction of variables
@@ -346,13 +346,13 @@ summary(lm(resp ~ level, test))$coefficients[,1, drop=F]
 
 ## How factors work in interactions
 
-* If the effect of a variable depends on another variable, we say the variables _interact_.
+- If the effect of a variable depends on another variable, we say the variables _interact_.
 
-* We're often not sure if variables interact or not. That's why we include them in the model: to see if they significantly improve the model.
+- We're often not sure if variables interact or not. That's why we include them in the model: to see if they significantly improve the model.
 
-* Interacting factors with numeric variables yields a separate parameter estimate for the numeric variable at each level of the factor.
+- Interacting a $k$-level factor with a numeric variable yields a separate parameter estimate for the numeric variable at $k - 1$ levels of the factor.
 
-* Interacting factors with other factors yields parameter estimates for all combinations of levels.
+- Interacting a $k$-level factor with a $j$-level factor yields parameter estimates for $(k-1) \times (j-1)$ combinations of levels.
 
 
 
@@ -424,7 +424,7 @@ summary(lm(resp ~ level * pos, test))$coefficients[,1, drop=F]
 
      + ANOVA: Does the mean response differ between levels of a categorical variable?
 
-* Do ANOVA same way you fit linear model:
+* Do ANOVA same way you fit linear model, except use `aov` instead of `lm`:
 
 ```
 aov1 <- aov(Y ~ X1 + X2, data=mydata)
@@ -434,14 +434,12 @@ TukeyHSD(aov1) # multilple comparisons of means
 
 ## More information on Factors
 
-* Character variables are automatically converted to factors on import if using base `R` functions.
+* Character variables are automatically converted to factors on import if using base R `read.` functions.
 
 * How do you know if a variable is coded as factor? Use `class` or `is.factor`. Can also inspect structure of data frame using `str`.
 
 * Calling `summary` on factors produces a table of counts.
 
-* Can plot effects of factors with `plot.design`.  
-     + Example: `plot.design(Y ~ factor, data = mydata)`
 
 Let's go to the R script.
 
@@ -559,6 +557,8 @@ Back to the R script.
 - `lme4`: fit linear mixed-effect models
 
 - `coefplot`: plot model coefficients; visualize coefficient magnitudes along with their standard errors
+
+- `stargazer`: Produces LaTeX code, HTML/CSS code and ASCII text for well-formatted tables that hold regression analysis results from several models side-by-side, as well as summary statistics
 
 ## References
 
